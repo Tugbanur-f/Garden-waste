@@ -3,6 +3,8 @@ import "../App.css";
 
 function SkipSelector() {
   const [skips, setSkips] = useState([]);
+  const [filteredSkips, setFilteredSkips] = useState([]);
+  const [searchYard, setSearchYard] = useState("");
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [selectedSkips, setSelectedSkips] = useState({});
@@ -18,6 +20,7 @@ function SkipSelector() {
       .then((data) => {
         const sortedSkips = data.sort((a, b) => a.size - b.size);
         setSkips(sortedSkips);
+        setFilteredSkips(sortedSkips);
         setLoading(false);
       })
       .catch((err) => {
@@ -25,6 +28,18 @@ function SkipSelector() {
         setLoading(false);
       });
   }, []);
+
+  useEffect(() => {
+    if (searchYard.trim() === "") {
+      setFilteredSkips(skips);
+    } else {
+      const target = parseInt(searchYard);
+      if (!isNaN(target)) {
+        const filtered = skips.filter((skip) => skip.size === target);
+        setFilteredSkips(filtered);
+      }
+    }
+  }, [searchYard, skips]);
 
   const toggleSelect = (id) => {
     setSelectedSkips((prev) => {
@@ -54,8 +69,18 @@ function SkipSelector() {
         Select the skip size that best suits your needs
       </p>
 
+      <div className="search-container">
+        <input
+          type="number"
+          placeholder="Enter yard size (e.g. 6)"
+          value={searchYard}
+          onChange={(e) => setSearchYard(e.target.value)}
+          onFocus={() => setSearchYard("")} //
+        />
+      </div>
+
       <div className="skip-grid">
-        {skips.map((skip) => {
+        {filteredSkips.map((skip) => {
           const price = skip.price_before_vat;
           const imagePath = `/img/skip.jpeg`;
           const isSelected = selectedSkips[skip.id];
@@ -97,7 +122,7 @@ function SkipSelector() {
                       className="cancel-button"
                       onClick={() => toggleSelect(skip.id)}
                     >
-                      Cancel
+                      Add
                     </button>
                   </div>
                 ) : (
